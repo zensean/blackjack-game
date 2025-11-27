@@ -1,0 +1,50 @@
+﻿# Python
+
+# Python 編譯產生的快取資料夾（會自動重建）
+__pycache__/       
+# .pyc .pyo .pyd 等編譯檔案
+*.py[cod]          
+# Java-style 的 Python class 檔案
+*$py.class        
+# 編譯的動態函式庫（C extension） 
+*.so               
+# Python 環境檔案
+.Python            
+# 虛擬環境資料夾（別人要自己建立）
+venv/              
+# 另一種虛擬環境命名
+env/              
+# 又一種虛擬環境命名
+ENV/               
+
+# IDE
+
+# VS Code 的設定檔（每個人的設定不同）
+.vscode/           
+# PyCharm 的設定檔
+.idea/             
+# Vim 的暫存檔
+*.swp              
+# Vim 的另一種暫存檔
+*.swo              
+
+# 環境變數
+
+# 機密資料！資料庫密碼、API key
+.env               
+# 本地環境變數
+.env.local         
+
+# 資料庫
+
+# SQLite 資料庫檔案（測試用的，不該上傳）
+*.db               
+# SQLite 資料庫（另一種副檔名）
+*.sqlite3          
+
+# OS
+
+# macOS 系統檔案
+.DS_Store          
+# Windows 縮圖快取
+Thumbs.db          
