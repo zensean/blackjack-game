@@ -1,6 +1,5 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import List
 
 
 class Suit(Enum):
@@ -34,7 +33,7 @@ class Card:
     suit: Suit
     rank: Rank
     
-    def get_values(self) -> List[int]:
+    def get_values(self) -> list[int]:
         """
         取得這張牌的可能點數
         大部分牌只有一個值，A 有兩個值 [1, 11]

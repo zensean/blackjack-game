@@ -1,5 +1,4 @@
 import random
-from typing import List
 from .card import Card, Suit, Rank
 
 
@@ -8,7 +7,7 @@ class Deck:
     
     def __init__(self):
         """初始化一副牌並洗牌"""
-        self.cards: List[Card] = []
+        self.cards: list[Card] = []
         self._initialize_deck()
         self.shuffle()
     
