@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWAG 21點：全服共鬥版</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
+        .container { width: 90%; max-width: 600px; background: #34495e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 20px; }
+        
+        h2 { text-align: center; color: #f1c40f; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #95a5a6; font-size: 0.9em; margin-bottom: 20px; }
+
+        /* 連線區塊 */
+        .conn-box { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        input[type="text"] { padding: 8px; border-radius: 5px; border: none; width: 150px; }
+        button { cursor: pointer; border: none; border-radius: 5px; padding: 8px 15px; font-weight: bold; transition: 0.2s; }
+        .btn-connect { background: #27ae60; color: white; }
+        .btn-disconnect { background: #c0392b; color: white; display: none; }
+        
+        /* 遊戲控制區 (預設隱藏) */
+        #game-controls { display: none; text-align: center; margin-bottom: 15px; padding: 15px; background: #2c3e50; border-radius: 8px; }
+        
+        .btn-start { background: #f39c12; color: white; font-size: 1.2em; padding: 10px 30px; width: 100%; }
+        .action-group { display: none; gap: 10px; justify-content: center; }
+        .btn-hit { background: #e74c3c; color: white; padding: 15px 30px; font-size: 1.2em; }
+        .btn-stand { background: #3498db; color: white; padding: 15px 30px; font-size: 1.2em; }
+        
+        button:disabled { background: #7f8c8d; cursor: not-allowed; }
+        button:hover:not(:disabled) { opacity: 0.9; transform: scale(1.05); }
+
+        /* 訊息顯示區 */
+        #log { height: 300px; overflow-y: auto; background: #ecf0f1; color: #2c3e50; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 14px; }
+        .msg-line { margin-bottom: 4px; padding: 2px 5px; border-bottom: 1px solid #ddd; }
+        .msg-system { color: #8e44ad; font-weight: bold; }
+        .msg-success { color: #27ae60; background: #d5f5e3; }
+        .msg-fail { color: #c0392b; background: #fadbd8; }
+        .msg-info { color: #2980b9; }
+
+        /* 狀態燈 */
+        .status-dot { height: 10px; width: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .connected .status-dot { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>♠️ SWAG 21點</h2>
+        <div class="subtitle">🔥 全服共鬥版 (Twitch Plays Blackjack)</div>
+
+        <div class="conn-box" id="conn-box">
+            <span class="status-dot"></span>
+            <input type="text" id="clientId" value="Player1" placeholder="輸入暱稱">
+            <button onclick="connect()" class="btn-connect" id="btnConnect">連線 (Connect)</button>
+            <button onclick="disconnect()" class="btn-disconnect" id="btnDisconnect">斷線</button>
+        </div>
+
+        <div id="game-controls">
+            <button onclick="sendAction('start')" class="btn-start" id="btnStart">👑 開啟新局</button>
+            
+            <div class="action-group" id="actionBtns">
+                <button onclick="sendAction('hit')" class="btn-hit">⚡ 要牌 (Hit)</button>
+                <button onclick="sendAction('stand')" class="btn-stand">🛑 停牌 (Stand)</button>
+            </div>
+        </div>
+
+        <div id="log">
+            <div class="msg-line" style="color: #7f8c8d;">等待連線中...</div>
+        </div>
+    </div>
+
+    <script>
+        var ws = null;
+        var btnConnect = document.getElementById("btnConnect");
+        var btnDisconnect = document.getElementById("btnDisconnect");
+        var gameControls = document.getElementById("game-controls");
+        var btnStart = document.getElementById("btnStart");
+        var actionBtns = document.getElementById("actionBtns");
+        var log = document.getElementById("log");
+        var connBox = document.getElementById("conn-box");
+
+        function connect() {
+            var clientId = document.getElementById("clientId").value || "Guest";
+            // 這裡改成你的 API 路徑
+            ws = new WebSocket("ws://127.0.0.1:8000/ws/" + clientId);
+
+            ws.onopen = function() {
+                addLog("✅ 已連線到伺服器", "msg-system");
+                toggleUI(true);
+                connBox.classList.add("connected");
+            };
+
+            ws.onmessage = function(event) {
+                var msg = event.data;
+                
+                // 簡單的關鍵字判斷來改變顏色 (Frontend Logic)
+                var cssClass = "msg-info";
+                if (msg.includes("獲勝") || msg.includes("成功")) cssClass = "msg-success";
+                if (msg.includes("爆牌") || msg.includes("輸")) cssClass = "msg-fail";
+                if (msg.includes("系統")) cssClass = "msg-system";
+
+                addLog(msg, cssClass);
+
+                // 自動切換按鈕狀態 (簡單的狀態機)
+                if (msg.includes("遊戲開始") || msg.includes("加牌") || msg.includes("要牌成功")) {
+                    btnStart.style.display = "none";
+                    actionBtns.style.display = "flex";
+                } else if (msg.includes("最終結果") || msg.includes("爆牌") || msg.includes("莊家獲勝")) {
+                    btnStart.style.display = "block";
+                    btnStart.innerText = "🔄再來一局";
+                    actionBtns.style.display = "none";
+                }
+            };
+
+            ws.onclose = function() {
+                addLog("❌ 連線已中斷", "msg-fail");
+                toggleUI(false);
+                connBox.classList.remove("connected");
+            };
+        }
+
+        function disconnect() {
+            if (ws) ws.close();
+        }
+
+        function sendAction(action) {
+            if (ws) {
+                ws.send(action);
+            }
+        }
+
+        function addLog(text, className) {
+            // 把換行符號轉成 HTML 換行
+            var formattedText = text.replace(/\n/g, "<br>");
+            log.innerHTML += `<div class="msg-line ${className}">${formattedText}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function toggleUI(isConnected) {
+            btnConnect.style.display = isConnected ? "none" : "block";
+            btnDisconnect.style.display = isConnected ? "block" : "none";
+            document.getElementById("clientId").disabled = isConnected;
+            gameControls.style.display = isConnected ? "block" : "none";
+            
+            // 預設狀態
+            if(isConnected) {
+                btnStart.style.display = "block";
+                actionBtns.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
