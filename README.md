@@ -1,34 +1,40 @@
-# 🎮 Blackjack Game - 21點線上遊戲
+# ♠️ SWAG Blackjack: Massive Multiplayer Online Game
 
-## 專案簡介
-使用 Python FastAPI + Vue 3 打造的全端 21點卡牌遊戲
+> A high-concurrency, real-time multiplayer Blackjack platform powered by **FastAPI**, **WebSockets**, and **Docker**.
+> Designed to simulate "Twitch Plays" style cooperative gameplay.
 
-## 技術棧
-- **後端**: FastAPI, PostgreSQL, Redis
-- **前端**: Vue 3, Vite, Pinia
-- **部署**: AWS EC2, Docker, Nginx
+![Python](https://img.shields.io/badge/Python-3.9+-blue.svg?style=flat&logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-High%20Performance-green.svg?style=flat&logo=fastapi)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue.svg?style=flat&logo=docker)
+![AWS](https://img.shields.io/badge/AWS-EC2%20Deployed-orange.svg?style=flat&logo=amazon-aws)
+![WebSocket](https://img.shields.io/badge/Protocol-WebSocket-lightgrey.svg?style=flat)
 
-## 開發進度
-- [x] Phase 1.1: 專案環境建置
-- [x] Phase 1.2: 遊戲邏輯設計
-- [x] Phase 1.3: 遊戲邏輯實作
-- [ ] Phase 2: 資料庫 + API
-- [ ] Phase 3: 前端開發
-- [ ] Phase 4: 部署
-- [ ] Phase 5: CI/CD
+## 📖 Introduction (專案簡介)
 
-## 本地開發
+This project demonstrates a **Server-Push Architecture** capable of handling real-time state synchronization across multiple clients. 
+Instead of traditional turn-based logic, it implements a **"World Co-op"** mode where all connected players share a single global game state, voting (via first-come-first-serve actions) to Hit or Stand against the Dealer.
 
-### 後端
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
+**Live Demo:** [Wait for AWS Deployment] (Coming Soon)
 
-訪問 http://127.0.0.1:8000/docs 查看 API 文件
+## 🏗 System Architecture (系統架構)
 
-## 作者
-Sean - Junior Backend Engineer
+The system is containerized using Docker and deployed on AWS EC2, utilizing Nginx as a reverse proxy to handle WebSocket upgrades.
+
+```mermaid
+graph TD
+    User["Clients / Players"] -->|HTTPS / WSS| CF["Cloudflare CDN"]
+    CF -->|Port 80| Nginx["Nginx Reverse Proxy"]
+    
+    subgraph "AWS EC2 Instance"
+        Nginx -->|Proxy Pass| Docker["Docker Container"]
+        
+        subgraph "Blackjack Service"
+            Docker -->|Run| Uvicorn["Uvicorn ASGI Server"]
+            Uvicorn -->|Mount| FastAPI["FastAPI App"]
+            
+            FastAPI -->|Manage| CM["Connection Manager"]
+            FastAPI -->|Logic| GameEngine["Game Logic (Singleton)"]
+            
+            CM <-->|Broadcast State| User
+        end
+    end
