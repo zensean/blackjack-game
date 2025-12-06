@@ -80,9 +80,21 @@
         var connBox = document.getElementById("conn-box");
 
         function connect() {
+            
             var clientId = document.getElementById("clientId").value || "Guest";
             // 這裡改成你的 API 路徑
-            ws = new WebSocket("ws://127.0.0.1:8000/ws/" + clientId);
+            // --- [修改開始] 自動判斷連線網址 ---
+            var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+            var host = window.location.host; // 這會自動抓取 "你的IP" 或是 "你的網域"
+            
+            // 如果是在 AWS 透過 Nginx (Port 80) 轉發，這裡不需要加 :8000
+            // 如果是在 本機開發 (Port 8000)，window.location.host 已經包含 :8000 了
+            
+            var wsUrl = protocol + host + "/ws/" + clientId;
+            console.log("嘗試連線到:", wsUrl); // 方便除錯用
+            
+            ws = new WebSocket(wsUrl);
+            // --- [修改結束] ---
 
             ws.onopen = function() {
                 addLog("✅ 已連線到伺服器", "msg-system");
