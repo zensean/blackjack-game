@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.connection_manager import manager
+from fastapi.responses import HTMLResponse
 
 # --- 這裡 import 你剛剛提供的 OOD 核心邏輯 ---
 # 確保 app/game 資料夾裡有 __init__.py，這樣 Python 才找得到
@@ -26,9 +27,11 @@ app.add_middleware(
 # 這能展現最強的 WebSocket 特性：A 玩家按「要牌」，B 玩家的畫面也會同步更新！
 global_game = Game()
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    return {"status": "ok", "message": "SWAG Blackjack Server Running"}
+    # 這裡假設 index.html 跟 main.py (或 Docker 的工作目錄) 在同一層
+    with open("frontend/index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
