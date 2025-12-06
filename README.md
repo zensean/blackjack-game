@@ -1,4 +1,4 @@
-# ♠️ SWAG Blackjack: Massive Multiplayer Online Game
+# ♠️ Blackjack: Massive Multiplayer Online Game
 
 > A high-concurrency, real-time multiplayer Blackjack platform powered by **FastAPI**, **WebSockets**, and **Docker**.
 > Designed to simulate "Twitch Plays" style cooperative gameplay.
